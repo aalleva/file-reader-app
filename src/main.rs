@@ -35,3 +35,32 @@ fn main() {
         }
     }
 }
+
+// Write Test Case for read_file_contents
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs::File;
+    use std::io::Write;
+    use std::path::PathBuf;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_read_file_contents_existent_file() {
+        let dir = tempdir().unwrap();
+        let file_path = dir.path().join("test_file.txt");
+
+        let mut file = File::create(&file_path).unwrap();
+        writeln!(file, "Test File").unwrap();
+
+        let result = read_file_contents(file_path);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), "Test File\n");
+    }
+
+    #[test]
+    fn test_read_file_contents_non_existent_file() {
+        let result = read_file_contents(PathBuf::from("non_existent_file.txt"));
+        assert!(result.is_err());
+    }
+}
