@@ -1,40 +1,37 @@
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{Error, Read};
+use std::path::PathBuf;
+
+fn read_file_contents(path: PathBuf) -> Result<String, Error> {
+    let mut string = String::new();
+
+    let mut file = match File::open(path) {
+        Ok(file_handle) => file_handle,
+        Err(error) => return Err(error),
+    };
+
+    match file.read_to_string(&mut string) {
+        Ok(_) => (),
+        Err(error) => return Err(error),
+    }
+
+    Ok(string)
+}
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
 
-    if args.len() > 1 {
-        let file_path = &args[1];
-        println!("Gile path is: {}", file_path);
-        
-        let file = File::open(&file_path);
-        let file = match file {
-            Ok(file) => file,
-            Err(error) => {
-                match error.kind() {
-                    std::io::ErrorKind::NotFound => {
-                        panic!("File not found: {}", error)
-                    }
-                    _ => {
-                        panic!("Error opening file: {}", error)
-                    }
-                }
+    if let Some(file_path) = &args.get(1) {
+        println!("Reading file: {}", file_path);
+
+        match read_file_contents(PathBuf::from(file_path)) {
+            Ok(contents) => {
+                println!("File contents:");
+                println!("{}", contents);
             }
-        };
-        
-        let reader = BufReader::new(file);
-        for line in reader.lines() {
-            match line {
-                Ok(line) => println!("{}", line),
-                Err(error) => {
-                    panic!("Error reading line: {}", error)
-                }
+            Err(error) => {
+                println!("Error reading file: {}", error);
             }
         }
-
-    } else {
-        println!("No file path provided");
     }
-
 }
